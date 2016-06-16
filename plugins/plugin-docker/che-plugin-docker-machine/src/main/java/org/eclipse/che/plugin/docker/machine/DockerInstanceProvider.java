@@ -321,7 +321,7 @@ public class DockerInstanceProvider implements InstanceProvider {
                               machineImageName,
                               creationLogsOutput);
     }
-
+//todo do not publish all exposed ports to host, publish only ports from ports field
     protected Instance createInstanceFromImage(final Machine machine, String machineContainerName,
                                                final LineConsumer creationLogsOutput) throws NotFoundException,
                                                                                              MachineException {
@@ -555,6 +555,10 @@ public class DockerInstanceProvider implements InstanceProvider {
                   .stream()
                   .forEach(serverConf -> portsToExpose.put(serverConf.getPort(), Collections.emptyMap()));
 
+            config.getExpose()
+                  .stream()
+                  .forEach(expose -> portsToExpose.put(expose, Collections.emptyMap()));
+
             config.getEnvVariables()
                   .entrySet()
                   .stream()
@@ -568,13 +572,14 @@ public class DockerInstanceProvider implements InstanceProvider {
             // set publish all ports = true
             // set port bindings for private ports to null
             // Done
+            // todo or set something to ports that should be published only - servers + field ports
 
+            // todo respect machine links
 
             final HostConfig hostConfig = new HostConfig();
             hostConfig.withBinds(volumes)
                       .withExtraHosts(allMachinesExtraHosts)
-                      .withPublishAllPorts(true)// todo expose only needed ports
-                      // set equal to memory to disable swap
+                      .withPublishAllPorts(true)
                       .withMemorySwap(machineMemorySwap)
                       .withMemory(machineMemory)
                       .withPrivileged(privilegeMode)
@@ -586,9 +591,9 @@ public class DockerInstanceProvider implements InstanceProvider {
                            .withEnv(env.toArray(new String[env.size()]))
                            .withNetworkingConfig(networkingConfig)
                            .withLabels(config.getLabels())
-                           .withEntrypoint(config.getEntrypoint().isEmpty() ? null :
+                           .withEntrypoint(config.getEntrypoint().size() < 1 ? null :
                                            config.getEntrypoint().toArray(new String[config.getEntrypoint().size()]))
-                           .withCmd(config.getCommand().isEmpty() ? null :
+                           .withCmd(config.getCommand().size() < 1 ? null :
                                     config.getCommand().toArray(new String[config.getCommand().size()]));
 
             final String containerId = docker.createContainer(CreateContainerParams.create(containerConfig)

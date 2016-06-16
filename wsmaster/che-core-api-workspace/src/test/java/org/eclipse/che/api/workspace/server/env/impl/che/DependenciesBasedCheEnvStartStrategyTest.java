@@ -10,6 +10,9 @@
  *******************************************************************************/
 package org.eclipse.che.api.workspace.server.env.impl.che;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.eclipse.che.api.core.model.machine.MachineConfig;
 import org.eclipse.che.api.machine.server.model.impl.MachineConfigImpl;
 import org.eclipse.che.api.machine.server.model.impl.MachineSourceImpl;
@@ -27,6 +30,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * author Alexander Garagatyi
@@ -37,6 +41,76 @@ public class DependenciesBasedCheEnvStartStrategyTest {
     @BeforeMethod
     public void setUp() throws Exception {
         strategy = new DependenciesBasedCheEnvStartStrategy();
+    }
+
+    @Test
+    public void should() throws Exception {
+        String json = "{\"one\":\"something\", \"one2\": {\"one\":\"something1\", \"two\":\"something2\"}}";
+
+        ObjectMapper mapper = new ObjectMapper();
+        MyInterface2 myInterface2 = mapper.readValue(json, MyClass2.class);
+
+        System.out.println(mapper.writeValueAsString(myInterface2));
+        assertTrue(true);
+    }
+
+    public interface MyInterface1 {
+        String getOne();
+
+        String getTwo();
+    }
+
+    public interface MyInterface2 {
+        String getOne();
+
+        @JsonProperty("one2")
+        MyInterface1 getOneTwo();
+    }
+
+    public static class MyClass1 implements MyInterface1 {
+        private String one;
+        private String two;
+
+        @Override
+        public String getOne() {
+            return one;
+        }
+
+        @Override
+        public String getTwo() {
+            return two;
+        }
+
+        @Override
+        public String toString() {
+            return "MyClass1{" +
+                   "one='" + one + '\'' +
+                   ", two='" + two + '\'' +
+                   '}';
+        }
+    }
+
+    public static class MyClass2 implements MyInterface2 {
+        private String one;
+        private MyClass1 oneTwo;
+
+        @Override
+        public String getOne() {
+            return one;
+        }
+
+        @Override
+        public MyClass1 getOneTwo() {
+            return oneTwo;
+        }
+
+        @Override
+        public String toString() {
+            return "MyClass2{" +
+                   "one='" + one + '\'' +
+                   ", oneTwo=" + oneTwo +
+                   '}';
+        }
     }
 
     @Test
