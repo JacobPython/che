@@ -327,9 +327,11 @@ public class DockerInstanceProvider implements InstanceProvider {
                                                                                              MachineException {
         final DockerMachineSource dockerMachineSource = new DockerMachineSource(machine.getConfig().getSource());
 
-        if (snapshotUseRegistry) {
-            pullImage(dockerMachineSource, creationLogsOutput);
-        }
+        // todo bug is here; impossible to create machines from image (not snapshot case).
+        // todo Comment snapshot workaround to fix it for demo
+//        if (snapshotUseRegistry) {
+        pullImage(dockerMachineSource, creationLogsOutput);
+//        }
 
         final String machineImageName = "eclipse-che/" + machineContainerName;
         final String fullNameOfPulledImage = dockerMachineSource.getLocation(false);

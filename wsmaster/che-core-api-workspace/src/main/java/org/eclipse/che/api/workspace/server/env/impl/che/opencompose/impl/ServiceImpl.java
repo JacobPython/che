@@ -22,19 +22,36 @@ import java.util.Objects;
  * @author Alexander Garagatyi
  */
 public class ServiceImpl implements Service {
-    private String              image;
-    private BuildConfigImpl     build;
-    private List<String>        entrypoint;
-    private List<String>        command;
-    private Map<String, String> environment;
-    private List<String>        dependsOn;
+    //todo container_name
     private String              containerName;
-    private List<String>        links;
-    private Map<String, String> labels;
+
+    // todo move context from build config
+    // todo move dockerfile from build config
+    private BuildConfigImpl     build;
+
+    private List<String>        command;
+    private List<String>        entrypoint;
+    private String              image;
+
+    //todo extends
+
+    // todo depends_on
+    private List<String>        dependsOn;
+
+    private Map<String, String> environment;
+
+    //todo env_file list
+
     private List<String>        expose;
     private List<String>        ports;
-    private List<String>        volumesFrom;
+    private Map<String, String> labels;
+    private List<String>        links;
     private List<String>        volumes;
+
+    //todo volumes_from
+    private List<String>        volumesFrom;
+
+    // todo missing in the model
     private Integer             memLimit;
 
     public ServiceImpl() {}

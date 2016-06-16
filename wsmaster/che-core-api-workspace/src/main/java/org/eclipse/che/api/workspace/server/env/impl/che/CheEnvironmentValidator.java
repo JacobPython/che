@@ -35,6 +35,7 @@ import org.eclipse.che.api.workspace.server.model.impl.MachineConfig2Impl;
 import org.eclipse.che.commons.env.EnvironmentContext;
 import org.eclipse.che.commons.lang.IoUtil;
 import org.slf4j.Logger;
+import org.yaml.snakeyaml.Yaml;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -108,19 +109,11 @@ public class CheEnvironmentValidator implements EnvironmentValidator {
 
         return envImpl;
     }
-
+//todo validate depends on fields to check cyclic dependencies
     // todo should throw another exception in case it is not possible to download recipe
     public List<MachineConfig> parse(EnvironmentRecipe envRecipe) throws IllegalArgumentException, ServerException {
-        if (!"application/json".equals(envRecipe.getContentType())) {
-            throw new IllegalArgumentException("Environment recipe content type is unsupported. Supported values are: application/json");
-        }
         String recipeContent = getContentOfRecipe(envRecipe);
-        EnvironmentRecipeContentImpl environmentRecipeContent;
-        try {
-            environmentRecipeContent = GSON.fromJson(recipeContent, EnvironmentRecipeContentImpl.class);
-        } catch (JsonSyntaxException e) {
-            throw new IllegalArgumentException("Parsing of environment configuration failed. " + e.getLocalizedMessage());
-        }
+        EnvironmentRecipeContentImpl environmentRecipeContent = parseEnvironmentRecipeContent(recipeContent, envRecipe.getContentType());
         List<MachineConfigImpl> machineConfigs =
                 environmentRecipeContent.getServices()
                                         .entrySet()
@@ -156,6 +149,31 @@ public class CheEnvironmentValidator implements EnvironmentValidator {
                                         })
                                         .collect(Collectors.toList());
         return machineConfigs.stream().collect(Collectors.toList());
+    }
+
+    private EnvironmentRecipeContentImpl parseEnvironmentRecipeContent(String recipeContent, String contentType) {
+        if (contentType == null) {
+            throw new IllegalArgumentException("Environment recipe content type required. Supported values are: application/json, application/x-yaml");
+        }
+        EnvironmentRecipeContentImpl envRecipeContent;
+        switch (contentType) {
+            case "application/json" :
+                try {
+                    envRecipeContent = GSON.fromJson(recipeContent, EnvironmentRecipeContentImpl.class);
+                } catch (JsonSyntaxException e) {
+                    throw new IllegalArgumentException("Parsing of environment configuration failed. " + e.getLocalizedMessage());
+                }
+                break;
+            case "application/x-yaml" :
+                Yaml yaml = new Yaml();
+                envRecipeContent = yaml.loadAs(recipeContent, EnvironmentRecipeContentImpl.class);
+                break;
+            default:
+                throw new IllegalArgumentException("Provided environment recipe content type '" +
+                                                   contentType +
+                                                   "' is unsupported. Supported values are: application/json, application/x-yaml");
+        }
+        return envRecipeContent;
     }
 
     private List<? extends MachineConfig> validateAndReturnMachines(EnvironmentRecipe envRecipe) throws ServerException, IllegalArgumentException {

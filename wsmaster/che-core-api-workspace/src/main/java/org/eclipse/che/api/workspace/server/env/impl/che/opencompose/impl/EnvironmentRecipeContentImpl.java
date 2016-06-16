@@ -21,7 +21,10 @@ import java.util.stream.Collectors;
  * @author Alexander Garagatyi
  */
 public class EnvironmentRecipeContentImpl implements EnvironmentRecipeContent {
+    // todo version
     private Map<String, ServiceImpl> services;
+
+    public EnvironmentRecipeContentImpl() {}
 
     public EnvironmentRecipeContentImpl(Map<String, ServiceImpl> services) {
         this.services = services;
